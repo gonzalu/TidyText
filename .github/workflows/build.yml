@@ -1,0 +1,55 @@
+name: Build
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: windows-2022
+    strategy:
+      matrix:
+        platform: [Win32, x64, ARM64]
+        include:
+          - platform: Win32
+            outdir: bin
+          - platform: x64
+            outdir: bin64
+          - platform: ARM64
+            outdir: arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Build
+        run: msbuild vs.proj\TidyText.vcxproj /p:Configuration=Release /p:Platform=${{ matrix.platform }} /nologo /v:minimal
+
+      - name: Package zip
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "${{ matrix.outdir }}\TidyText.dll" -DestinationPath "TidyText_${{ matrix.platform }}.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TidyText_${{ matrix.platform }}
+          path: TidyText_${{ matrix.platform }}.zip
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Flatten artifact zips
+        run: find artifacts -name '*.zip' -exec mv {} . \;
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: '*.zip'
