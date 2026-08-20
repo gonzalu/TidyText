@@ -33,7 +33,7 @@ jobs:
         run: |
           Compress-Archive -Path "${{ matrix.outdir }}\TidyText.dll" -DestinationPath "TidyText_${{ matrix.platform }}.zip"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: TidyText_${{ matrix.platform }}
           path: TidyText_${{ matrix.platform }}.zip
