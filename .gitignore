@@ -3,6 +3,7 @@ bin64/
 bin/
 arm64/
 releases/
+releases_v1.1.0/
 vs.proj/TidyText/
 vs.proj/*.lib
 vs.proj/*.exp
